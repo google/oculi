@@ -1,0 +1,29 @@
+job_name: "sample-job" # human-readable name for Dataflow console and GCS folder
+job_type: "image" # options: "image", "video"
+
+creative_source_type: "bigquery" # options: "bigquery:, "cm", "gcs"
+creative_source_details:
+  # required when creative_source_type = "bigquery"
+  gcp_project: "gcp-project-name"
+  bq_dataset: "bq-dataset-name"
+  bq_table: "bq-table-name" # expected columns: Creative_ID, Advertiser_ID, Creative_Name, Full_URL
+
+  # required when creative_source_type = "cm"
+  cm_account_id: 0000 # aka network ID
+  cm_profile_id: 000000 # user profile must have read access to creatives
+  start_date: 2018-01-01 # format: YYYY-MM-DD
+  end_date: 2019-08-20 # format: YYYY-MM-DD
+
+  # required when creative_source_type = "gcs" (not implemented yet)
+  gcp_project: "gcp-project-name" # project containing the gcs_bucket
+  gcs_bucket: "gcs-bucket-name" # must contains asset files at top level
+
+data_destination:
+  gcp_project: "gcp-project-name"
+  bq_dataset: "bq-dataset-name" # for creative visual attribute data
+  gcs_bucket: "gcs-bucket-name" # for storage of creative assets (image and video files)
+
+run_details: # required for Dataflow setup
+  gcp_project: "gcp-project-name"
+  temp_location: "gs://gcs-bucket-name/tmp"
+  staging_location: "gs://gcs-bucket-name/staging"
