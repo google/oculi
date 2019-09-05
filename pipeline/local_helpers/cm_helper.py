@@ -75,7 +75,7 @@ def retry(request, retries=4):
     except HttpError as e:
       if this_retry == retries - 1 or e.resp.status not in [403, 429, 500, 503]:
         raise
-      wait = 10 * 2**retry
+      wait = 10 * 2**this_retry
       time.sleep(wait)
 
 
