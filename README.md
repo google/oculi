@@ -20,7 +20,7 @@ This pipeline supports three sources of creatives[^1]:
 *   **A Google Campaign Manager (CM) account.** Oculi will attempt to extract
     all creatives on the account that have an image or video asset in a suitable
     format[^2], then download the asset and save a copy to Cloud Storage. Users
-    of DV360 should use their CM shadow account.
+    of DV360 may be able to use this option (see FAQ).
 *   **A BigQuery table of URLs.** URLs must point to images or videos, and be
     accessible without login. Oculi will download the asset and save a copy to
     Cloud Storage. The required table columns are:
@@ -75,6 +75,8 @@ you through setup scripts.
     ```bash
     ./setup_environment.sh
     ```
+    This step should generate a `client_secrets.json` file in your current
+    directory.
 
 3.  Create a jobfile in `jobs/` using `sample.yaml` as a reference. A few tips:
 
@@ -101,11 +103,10 @@ you through setup scripts.
 
 ## Frequently Asked Questions
 
-**How do I pull creatives from DV360 if I don't use Campaign Manager?**
+**How do I pull creatives from DV360 rather than Campaign Manager?**
 
-Your DV360 partner is associated with a Campaign Manager "shadow account", which
-is where your creatives are actually stored. For help finding this shadow
-account, work with your Google account manager or gTech contact.
+Your DV360 creatives may be accessible from Campaign Manager; work with your
+Google account manager or gTech contact.
 
 **When using Campaign Manager as a source, how do I fill out `cm_profile_id`?**
 

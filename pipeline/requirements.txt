@@ -31,7 +31,7 @@ pyarrow==0.11.1
 pyasn1==0.4.5
 pyasn1-modules==0.2.5
 pytz==2019.1
-PyYAML==3.13
+pyyaml==3.13
 requests==2.22.0
 rsa==4.0
 six==1.12.0
