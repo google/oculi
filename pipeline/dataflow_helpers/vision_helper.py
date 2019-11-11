@@ -118,6 +118,11 @@ class ExtractVideoMetadata(beam.DoFn):
                              video_context):
     operation = video_client.annotate_video(gs_uri, features=features,
                                             video_context=video_context)
+    # TODO(team): Video jobs currently have an issue where Dataflow autoscales
+    # down to 1 worker. Our running theory is that it's caused by this
+    # (presumably) long-running synchronous call: when many workers are waiting
+    # on these responses, Dataflow sees workers not using CPU and determines
+    # they're not needed.
     response = operation.result(timeout=2400)  # 40 mins
     return response
 

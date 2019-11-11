@@ -22,6 +22,7 @@ import time
 from googleapiclient import discovery
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
+from ssl import SSLError
 
 LOCAL_CLIENT_SECRETS = 'client_secrets.json'
 
@@ -77,6 +78,11 @@ def retry(request, retries=4):
         raise
       wait = 10 * 2**this_retry
       time.sleep(wait)
+    except SSLError as e:
+      if this_retry == retries - 1 or 'timed out' not in e.message:
+        raise
+      wait = 10 * 2**this_retry
+      time.sleep(wait)
 
 
 def fetch_cm_creatives(credentials_path, cm_profile_id, job_type,
@@ -96,13 +102,17 @@ def fetch_cm_creatives(credentials_path, cm_profile_id, job_type,
       Full_URL
   """
 
-  cm = init_cm(LOCAL_CLIENT_SECRETS)
+  cm = init_cm(credentials_path)
 
   creatives = []
   request = cm.creatives().list(profileId=cm_profile_id)
   print('fetching creatives...')
+  start = time.time()
+  page = 1
   while True:
-    print('fetching next page...')
+    page += 1
+    print('fetching next page (page: {}, time: {})...'
+          .format(page, time.time() - start))
     response = retry(request)
     creatives += response['creatives']
     if 'nextPageToken' in response:

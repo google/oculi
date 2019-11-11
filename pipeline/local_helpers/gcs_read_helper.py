@@ -99,7 +99,7 @@ def fetch_gcs_creatives(credentials_path, gcp_project, gcs_bucket,
     # save creative
     gcs_creatives.append({
         'Creative_ID': creative_id,
-        'GCS_URL': 'gs://{}/{}'.format(gcs_bucket, blob.name)
+        'GCS_URL': u'gs://{}/{}'.format(gcs_bucket, blob.name)
     })
 
   return gcs_creatives

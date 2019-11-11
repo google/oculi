@@ -1,9 +1,7 @@
-
 # How to Contribute
 
 Unfortunately, we are not currently able to accept patches and contributions.
 We ask that you file a bug report or feature request on GitHub instead.
-
 
 ## Community Guidelines
 

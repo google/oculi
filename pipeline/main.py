@@ -29,8 +29,8 @@ from dataflow_helpers import video_schema_definitions
 from dataflow_helpers import vision_helper
 
 from local_helpers import cm_helper
-from local_helpers import jobfile_helper
 from local_helpers import gcs_read_helper
+from local_helpers import jobfile_helper
 
 TMP_PATH = 'tmp.yaml'
 CREDENTIALS_PATH = 'client_secrets.json'

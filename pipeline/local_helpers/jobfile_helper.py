@@ -118,9 +118,9 @@ def validate_jobfile_access(jobfile, credentials_path):
   """
 
   if jobfile['creative_source_type'] == 'bigquery':
-    pass  
+    pass  # TODO(team)
   elif jobfile['creative_source_type'] == 'gcs':
-    pass 
+    pass  # TODO(team)
   elif jobfile['creative_source_type'] == 'cm':
     specified_profile = int(jobfile['creative_source_details']['cm_profile_id'])
     specified_account = int(jobfile['creative_source_details']['cm_account_id'])
@@ -147,6 +147,6 @@ def validate_jobfile_access(jobfile, credentials_path):
         msg += 'or doesn\'t belong to this service account'
       raise ValueError(msg)
 
- 
+  # TODO(team): validate data_destination and run_details also
 
   return jobfile

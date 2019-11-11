@@ -61,6 +61,7 @@ class UploadToGcs(beam.DoFn):
     gcs_file_name = "{0}/{1}/{2}/{3}".format(job_name, advertiser_id,
                                              job_type, file_name)
     blob = bucket.blob(gcs_file_name)
+    # TODO(team): pick correct format based on filename extension
     content_type = "image/jpg" if job_type == "image" else "video/mp4"
     blob.upload_from_string(data=asset_byte_string, content_type=content_type)
 
@@ -82,7 +83,7 @@ class UploadToGcs(beam.DoFn):
     """
     creative_id = row["Creative_ID"]
     advertiser_id = row["Advertiser_ID"]
-    file_name = row["Creative_Name"] 
+    file_name = row["Creative_Name"] # TODO(team): pass filename extension
     asset_url = row["Full_URL"]
 
     # Download the asset to memory

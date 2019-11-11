@@ -15,11 +15,11 @@ performance (e.g. creatives with a human model tend to perform better).
 
 ## Creative Sources
 
-This pipeline supports three sources of creatives[^1]:
+This pipeline supports three sources of creatives [^1]:
 
 *   **A Google Campaign Manager (CM) account.** Oculi will attempt to extract
     all creatives on the account that have an image or video asset in a suitable
-    format[^2], then download the asset and save a copy to Cloud Storage. Users
+    format [^2], then download the asset and save a copy to Cloud Storage. Users
     of DV360 may be able to use this option (see FAQ).
 *   **A BigQuery table of URLs.** URLs must point to images or videos, and be
     accessible without login. Oculi will download the asset and save a copy to
@@ -75,6 +75,7 @@ you through setup scripts.
     ```bash
     ./setup_environment.sh
     ```
+
     This step should generate a `client_secrets.json` file in your current
     directory.
 
@@ -151,6 +152,13 @@ collections. If you see a dropoff...
 *   ... between Input and Output of an *Extract* step: creatives were filtered
     out because they weren't relevant for this table, e.g. only creatives with
     faces detected will end up in the `face_annotations` table.
+    
+**`setup_environment.sh` is failing, complaining about version mismatches
+and/or `EnvironmentError`s.**
+
+Try using a virtual environment (step 1) to avoid any mismatches between the
+versions of libraries you already have installed on your system vs. the
+versions specified in `requirements.txt`.
 
 ## Authors
 
