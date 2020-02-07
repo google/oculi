@@ -16,7 +16,7 @@
 
 from __future__ import print_function
 
-import datetime
+import random
 import time
 
 from googleapiclient import discovery
@@ -91,10 +91,10 @@ def fetch_cm_creatives(credentials_path, cm_profile_id, job_type,
 
   Args:
     credentials_path: path to client_secrets.json
-    cm_profile_id: Campaign Manager User Profile with read access to creativesi
+    cm_profile_id: Campaign Manager User Profile with read access to creatives
     job_type: 'image' or 'video'
-    start_date: filter on "Last Modified" in CM
-    end_date: filter on "Last Modified" in CM
+    start_date: filter on last changelog timestamp
+    end_date: filter on last changelog timestamp
     limit: optional numerical limit for number of creatives
 
   Returns:
@@ -104,76 +104,110 @@ def fetch_cm_creatives(credentials_path, cm_profile_id, job_type,
 
   cm = init_cm(credentials_path)
 
-  creatives = []
-  request = cm.creatives().list(profileId=cm_profile_id)
-  print('fetching creatives...')
+  # This extraction is done in three steps:
+  # 1. Search changelogs for all creatives modified in date range
+  # In batches of 500 (maximum filter size for creative IDs):
+  # 2. Fetch creative objects matching those IDs
+  # 3. Extract URLs from each batch of creatives
+  # Step 1 is done because a date filter isn't available in the API's creative
+  # endpoint, and step 2 is done to reduce the number of API calls vs. 1 per
+  # creative.
+
+  # STEP 1: search changelogs
+  print('fetching creative updates from changelogs...')
+
+  # make time/date strings for filtering changelogs
+  zero_time = "T00:00:00-00:00" # UTC
+  start_str = None if start_date is None else str(start_date) + zero_time
+  end_str = None if end_date is None else str(end_date) + zero_time
+
+  # assemble request
+  request = cm.changeLogs().list(profileId=cm_profile_id,
+                                 objectType='OBJECT_CREATIVE',
+                                 minChangeTime=start_str,
+                                 maxChangeTime=end_str)
+
+  # paginate
+  creative_ids = set()
   start = time.time()
-  page = 1
+  page = 0
   while True:
     page += 1
-    print('fetching next page (page: {}, time: {})...'
+    print('fetching page {}, time: {}...'
           .format(page, time.time() - start))
     response = retry(request)
-    creatives += response['creatives']
+
+    # collect creative IDs from changelog response
+    for changelog in response['changeLogs']:
+      creative_ids.add(changelog['objectId'])
+
     if 'nextPageToken' in response:
-      request = cm.creatives().list_next(request, response)
+      request = cm.changeLogs().list_next(request, response)
     else:
       break
-    if limit and len(creatives) >= limit:
+    if limit and len(creative_ids) >= limit:
       break
 
-  if limit:
-    creatives = creatives[:limit]
-  print('fetched {} creatives'.format(len(creatives)))
+  creative_ids = list(creative_ids)
+  if limit and len(creative_ids) > limit:
+    creative_ids = creative_ids[:limit]
+  print('found {} creatives modified in date range'.format(len(creative_ids)))
 
-  out_creatives = []
+  # BATCH: define batches for steps 2 & 3
+  batch_size = 500
+  out_creatives = []  # final output collection
+  for i in range(0, len(creative_ids), batch_size):
+    print('processing creative batch {} to {}...'.format(i, i + batch_size))
 
-  for creative in creatives:
-    if 'creativeAssets' not in creative:
-      continue
+    # STEP 2: assemble creative list
+    print('fetching creative details...')
+    batch_cids = creative_ids[i:i + batch_size]
+    request = cm.creatives().list(profileId=cm_profile_id, ids=batch_cids)
+    response = retry(request)
+    creatives = response['creatives']
 
-    # convert ms since epoch to date
-    last_modified = datetime.date.fromtimestamp(
-        int(creative['lastModifiedInfo']['time']) / 1000)
-    if start_date and last_modified < start_date:
-      continue
-    if end_date and last_modified > end_date:
-      continue
+    # STEP 3: extract asset URLs
+    print('extracting URLs...')
+    for creative in creatives:
+      if 'creativeAssets' not in creative:
+        continue
 
-    assets = creative['creativeAssets']
-    assets.sort(reverse=True, key=(lambda asset: asset['fileSize']))
+      assets = creative['creativeAssets']
+      assets.sort(reverse=True, key=(lambda asset: asset['fileSize']))
 
-    accepted_formats = {
-        'video': ['mp4', 'mov', 'wmv', 'm4v', 'webm'],
-        'image': ['jpg', 'png', 'gif', 'jpeg']
-    }
+      accepted_formats = {
+          'video': ['mp4', 'mov', 'wmv', 'm4v', 'webm'],
+          'image': ['jpg', 'png', 'gif', 'jpeg']
+      }
 
-    url = None
-    for asset in assets:
-      # check two special cases for video creatives first, in which case
-      # the URL is easy to get
-      if job_type == 'video' and 'progressiveServingUrl' in asset:
-        url = asset['progressiveServingUrl']
-        break
-      elif job_type == 'video' and 'streamingServingUrl' in asset:
-        url = asset['streamingServingUrl']
-        break
-      # otherwise, for image creatives or video creatives not captured by the
-      # above, try a reconstructed URL and check the file extension
-      else:
-        reconstructed_url = 'https://s0.2mdn.net/{}/{}'.format(
-            creative['advertiserId'], asset['assetIdentifier']['name'])
-        extension = reconstructed_url.split('.')[-1].lower()
-        if extension in accepted_formats[job_type]:
-          url = reconstructed_url
+      url = None
+      for asset in assets:
+        # check two special cases for video creatives first, in which case
+        # the URL is easy to get
+        if job_type == 'video' and 'progressiveServingUrl' in asset:
+          url = asset['progressiveServingUrl']
           break
+        elif job_type == 'video' and 'streamingServingUrl' in asset:
+          url = asset['streamingServingUrl']
+          break
+        # otherwise, for image creatives or video creatives not captured by the
+        # above, try a reconstructed URL and check the file extension
+        else:
+          reconstructed_url = 'https://s0.2mdn.net/{}/{}'.format(
+              creative['advertiserId'],
+              asset['assetIdentifier']['name'].encode('utf-8'))
+          extension = reconstructed_url.split('.')[-1].lower()
+          if extension in accepted_formats[job_type]:
+            url = reconstructed_url
+            break
 
-    if url:
-      out_creatives.append({
-          'Creative_ID': creative['id'],
-          'Advertiser_ID': creative['advertiserId'],
-          'Creative_Name': creative['name'],
-          'Full_URL': url
-      })
+      if url:
+        out_creatives.append({
+            'Creative_ID': creative['id'],
+            'Advertiser_ID': creative['advertiserId'],
+            'Creative_Name': creative['name'],
+            'Full_URL': url
+        })
 
+  print('found {} creatives with suitable assets'.format(len(out_creatives)))
   return out_creatives
