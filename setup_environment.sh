@@ -38,6 +38,10 @@ else
   COMMAND="gcloud iam service-accounts list \
     --format='value(email)' --filter='displayName:$SVC_ACCOUNT_NAME'"
   SVC_ACCOUNT=$(eval $COMMAND) # using eval here due to nested quotes and vars
+  if [ -z "$SVC_ACCOUNT" ]; then
+    echo "Default service account for Compute Engine not found, please create one first"
+    exit 1
+  fi
   echo "Found service account: $SVC_ACCOUNT"
 
   # If not, create one
