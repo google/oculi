@@ -33,7 +33,7 @@ pyasn1-modules==0.2.5
 pytz==2019.1
 pyyaml==3.13
 requests==2.22.0
-rsa==4.0
+rsa==4.7
 six==1.12.0
 typing==3.6.6
 urllib3==1.25.3
