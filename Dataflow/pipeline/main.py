@@ -44,7 +44,7 @@ jobfile = jobfile_helper.open_jobfile(TMP_PATH, delete=True)
 print(jobfile)
 
 # set options for Dataflow session
-options = PipelineOptions()
+options = PipelineOptions(region='us-central1')
 google_cloud_options = options.view_as(GoogleCloudOptions)
 google_cloud_options.job_name = jobfile['job_name']
 google_cloud_options.project = jobfile['run_details']['gcp_project']
