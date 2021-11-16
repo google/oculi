@@ -18,8 +18,8 @@
 #
 ###########################################################################
 
-OCULI_PYTHON="python2"
-OCULI_ENV_PATH=~/"Envs" # no trailing slash, glob chars outside quotes
+OCULI_PYTHON="python3"
+OCULI_ENV_PATH=./"Envs" # no trailing slash, glob chars outside quotes
 OCULI_ENV_NAME="oculi-venv"
 
 if [ ! -d $OCULI_ENV_PATH ]; then
