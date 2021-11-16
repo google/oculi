@@ -28,7 +28,7 @@ LOCAL_CLIENT_SECRETS = 'client_secrets.json'
 
 
 def init_cm(credentials_path):
-  """Initializes the Campaign Manager API.
+    """Initializes the Campaign Manager API.
 
   Args:
     credentials_path: filepath to client_secrets.json
@@ -39,26 +39,26 @@ def init_cm(credentials_path):
   Raises:
     ValueError
   """
-  api_name = 'dfareporting'
-  api_version = 'v3.3'
-  oauth_scopes = ['https://www.googleapis.com/auth/dfatrafficking']
+    api_name = 'dfareporting'
+    api_version = 'v3.3'
+    oauth_scopes = ['https://www.googleapis.com/auth/dfatrafficking']
 
-  try:
-    credentials = service_account.Credentials.from_service_account_file(
-        credentials_path)
-  except IOError:
-    msg = 'no or invalid credentials found at {}, '.format(credentials_path)
-    msg += 'have you run setup_environment.sh?'
-    raise ValueError(msg)
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path)
+    except IOError:
+        msg = 'no or invalid credentials found at {}, '.format(credentials_path)
+        msg += 'have you run setup_environment.sh?'
+        raise ValueError(msg)
 
-  credentials = credentials.with_scopes(oauth_scopes)
-  service = discovery.build(api_name, api_version, credentials=credentials)
+    credentials = credentials.with_scopes(oauth_scopes)
+    service = discovery.build(api_name, api_version, credentials=credentials)
 
-  return service
+    return service
 
 
 def retry(request, retries=4):
-  """Retries a standard CM request for appropriate error codes.
+    """Retries a standard CM request for appropriate error codes.
 
   Args:
     request: CM request (before .execute())
@@ -70,24 +70,24 @@ def retry(request, retries=4):
   Raises:
     HttpError: if exceeded
   """
-  for this_retry in range(retries):
-    try:
-      return request.execute()
-    except HttpError as e:
-      if this_retry == retries - 1 or e.resp.status not in [403, 429, 500, 503]:
-        raise
-      wait = 10 * 2**this_retry
-      time.sleep(wait)
-    except SSLError as e:
-      if this_retry == retries - 1 or 'timed out' not in e.message:
-        raise
-      wait = 10 * 2**this_retry
-      time.sleep(wait)
+    for this_retry in range(retries):
+        try:
+            return request.execute()
+        except HttpError as e:
+            if this_retry == retries - 1 or e.resp.status not in [403, 429, 500, 503]:
+                raise
+            wait = 10 * 2 ** this_retry
+            time.sleep(wait)
+        except SSLError as e:
+            if this_retry == retries - 1 or 'timed out' not in e.message:
+                raise
+            wait = 10 * 2 ** this_retry
+            time.sleep(wait)
 
 
 def fetch_cm_creatives(credentials_path, cm_profile_id, job_type,
                        start_date=False, end_date=False, limit=False):
-  """Fetches creatives using the CM API.
+    """Fetches creatives using the CM API.
 
   Args:
     credentials_path: path to client_secrets.json
@@ -102,112 +102,112 @@ def fetch_cm_creatives(credentials_path, cm_profile_id, job_type,
       Full_URL
   """
 
-  cm = init_cm(credentials_path)
+    cm = init_cm(credentials_path)
 
-  # This extraction is done in three steps:
-  # 1. Search changelogs for all creatives modified in date range
-  # In batches of 500 (maximum filter size for creative IDs):
-  # 2. Fetch creative objects matching those IDs
-  # 3. Extract URLs from each batch of creatives
-  # Step 1 is done because a date filter isn't available in the API's creative
-  # endpoint, and step 2 is done to reduce the number of API calls vs. 1 per
-  # creative.
+    # This extraction is done in three steps:
+    # 1. Search changelogs for all creatives modified in date range
+    # In batches of 500 (maximum filter size for creative IDs):
+    # 2. Fetch creative objects matching those IDs
+    # 3. Extract URLs from each batch of creatives
+    # Step 1 is done because a date filter isn't available in the API's creative
+    # endpoint, and step 2 is done to reduce the number of API calls vs. 1 per
+    # creative.
 
-  # STEP 1: search changelogs
-  print('fetching creative updates from changelogs...')
+    # STEP 1: search changelogs
+    print('fetching creative updates from changelogs...')
 
-  # make time/date strings for filtering changelogs
-  zero_time = "T00:00:00-00:00" # UTC
-  start_str = None if start_date is None else str(start_date) + zero_time
-  end_str = None if end_date is None else str(end_date) + zero_time
+    # make time/date strings for filtering changelogs
+    zero_time = "T00:00:00-00:00"  # UTC
+    start_str = None if start_date is None else str(start_date) + zero_time
+    end_str = None if end_date is None else str(end_date) + zero_time
 
-  # assemble request
-  request = cm.changeLogs().list(profileId=cm_profile_id,
-                                 objectType='OBJECT_CREATIVE',
-                                 minChangeTime=start_str,
-                                 maxChangeTime=end_str)
+    # assemble request
+    request = cm.changeLogs().list(profileId=cm_profile_id,
+                                   objectType='OBJECT_CREATIVE',
+                                   minChangeTime=start_str,
+                                   maxChangeTime=end_str)
 
-  # paginate
-  creative_ids = set()
-  start = time.time()
-  page = 0
-  while True:
-    page += 1
-    print('fetching page {}, time: {}...'
-          .format(page, time.time() - start))
-    response = retry(request)
+    # paginate
+    creative_ids = set()
+    start = time.time()
+    page = 0
+    while True:
+        page += 1
+        print('fetching page {}, time: {}...'
+              .format(page, time.time() - start))
+        response = retry(request)
 
-    # collect creative IDs from changelog response
-    for changelog in response['changeLogs']:
-      creative_ids.add(changelog['objectId'])
+        # collect creative IDs from changelog response
+        for changelog in response['changeLogs']:
+            creative_ids.add(changelog['objectId'])
 
-    if 'nextPageToken' in response:
-      request = cm.changeLogs().list_next(request, response)
-    else:
-      break
-    if limit and len(creative_ids) >= limit:
-      break
-
-  creative_ids = list(creative_ids)
-  if limit and len(creative_ids) > limit:
-    creative_ids = creative_ids[:limit]
-  print('found {} creatives modified in date range'.format(len(creative_ids)))
-
-  # BATCH: define batches for steps 2 & 3
-  batch_size = 500
-  out_creatives = []  # final output collection
-  for i in range(0, len(creative_ids), batch_size):
-    print('processing creative batch {} to {}...'.format(i, i + batch_size))
-
-    # STEP 2: assemble creative list
-    print('fetching creative details...')
-    batch_cids = creative_ids[i:i + batch_size]
-    request = cm.creatives().list(profileId=cm_profile_id, ids=batch_cids)
-    response = retry(request)
-    creatives = response['creatives']
-
-    # STEP 3: extract asset URLs
-    print('extracting URLs...')
-    for creative in creatives:
-      if 'creativeAssets' not in creative:
-        continue
-
-      assets = creative['creativeAssets']
-      assets.sort(reverse=True, key=(lambda asset: asset['fileSize']))
-
-      accepted_formats = {
-          'video': ['mp4', 'mov', 'wmv', 'm4v', 'webm'],
-          'image': ['jpg', 'png', 'gif', 'jpeg']
-      }
-
-      url = None
-      for asset in assets:
-        # check two special cases for video creatives first, in which case
-        # the URL is easy to get
-        if job_type == 'video' and 'progressiveServingUrl' in asset:
-          url = asset['progressiveServingUrl']
-          break
-        elif job_type == 'video' and 'streamingServingUrl' in asset:
-          url = asset['streamingServingUrl']
-          break
-        # otherwise, for image creatives or video creatives not captured by the
-        # above, try a reconstructed URL and check the file extension
+        if 'nextPageToken' in response:
+            request = cm.changeLogs().list_next(request, response)
         else:
-          reconstructed_url = 'https://s0.2mdn.net/{}/{}'.format(
-              creative['advertiserId'],
-              asset['assetIdentifier']['name'].encode('utf-8'))
-          extension = reconstructed_url.split('.')[-1].lower()
-          if extension in accepted_formats[job_type]:
-            url = reconstructed_url
+            break
+        if limit and len(creative_ids) >= limit:
             break
 
-      if url:
-        out_creatives.append({
-            'Creative_ID': creative['id'],
-            'Advertiser_ID': creative['advertiserId'],
-            'Creative_Name': creative['name'],
-            'Full_URL': url
-        })
+    creative_ids = list(creative_ids)
+    if limit and len(creative_ids) > limit:
+        creative_ids = creative_ids[:limit]
+    print('found {} creatives modified in date range'.format(len(creative_ids)))
 
-  print('found {} creatives with suitable assets'.format(len(out_creatives)))
-  return out_creatives
+    # BATCH: define batches for steps 2 & 3
+    batch_size = 500
+    out_creatives = []  # final output collection
+    for i in range(0, len(creative_ids), batch_size):
+        print('processing creative batch {} to {}...'.format(i, i + batch_size))
+
+        # STEP 2: assemble creative list
+        print('fetching creative details...')
+        batch_cids = creative_ids[i:i + batch_size]
+        request = cm.creatives().list(profileId=cm_profile_id, ids=batch_cids)
+        response = retry(request)
+        creatives = response['creatives']
+
+        # STEP 3: extract asset URLs
+        print('extracting URLs...')
+        for creative in creatives:
+            if 'creativeAssets' not in creative:
+                continue
+
+            assets = creative['creativeAssets']
+            assets.sort(reverse=True, key=(lambda asset: asset['fileSize']))
+
+            accepted_formats = {
+                'video': ['mp4', 'mov', 'wmv', 'm4v', 'webm'],
+                'image': ['jpg', 'png', 'gif', 'jpeg']
+            }
+
+            url = None
+            for asset in assets:
+                # check two special cases for video creatives first, in which case
+                # the URL is easy to get
+                if job_type == 'video' and 'progressiveServingUrl' in asset:
+                    url = asset['progressiveServingUrl']
+                    break
+                elif job_type == 'video' and 'streamingServingUrl' in asset:
+                    url = asset['streamingServingUrl']
+                    break
+                # otherwise, for image creatives or video creatives not captured by the
+                # above, try a reconstructed URL and check the file extension
+                else:
+                    reconstructed_url = 'https://s0.2mdn.net/{}/{}'.format(
+                        creative['advertiserId'],
+                        asset['assetIdentifier']['name'].encode('utf-8'))
+                    extension = reconstructed_url.split('.')[-1].lower()
+                    if extension in accepted_formats[job_type]:
+                        url = reconstructed_url
+                        break
+
+            if url:
+                out_creatives.append({
+                    'Creative_ID': creative['id'],
+                    'Advertiser_ID': creative['advertiserId'],
+                    'Creative_Name': creative['name'],
+                    'Full_URL': url
+                })
+
+    print('found {} creatives with suitable assets'.format(len(out_creatives)))
+    return out_creatives

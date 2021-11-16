@@ -23,7 +23,7 @@ LOCAL_CLIENT_SECRETS = 'client_secrets.json'
 
 
 def init_gcs(credentials_path, gcp_project):
-  """Initializes the GCS API.
+    """Initializes the GCS API.
 
   Args:
     credentials_path: filepath to client_secrets.json
@@ -36,22 +36,22 @@ def init_gcs(credentials_path, gcp_project):
     ValueError
   """
 
-  try:
-    credentials = service_account.Credentials.from_service_account_file(
-        credentials_path)
-  except IOError:
-    msg = 'no or invalid credentials found at {}, '.format(credentials_path)
-    msg += 'have you run setup_environment.sh?'
-    raise ValueError(msg)
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path)
+    except IOError:
+        msg = 'no or invalid credentials found at {}, '.format(credentials_path)
+        msg += 'have you run setup_environment.sh?'
+        raise ValueError(msg)
 
-  service = storage.Client(project=gcp_project, credentials=credentials)
+    service = storage.Client(project=gcp_project, credentials=credentials)
 
-  return service
+    return service
 
 
 def fetch_gcs_creatives(credentials_path, gcp_project, gcs_bucket,
                         job_type, limit=False):
-  """Fetches creatives using the GCS API.
+    """Fetches creatives using the GCS API.
 
   Args:
     credentials_path: path to client_secrets.json
@@ -64,42 +64,42 @@ def fetch_gcs_creatives(credentials_path, gcp_project, gcs_bucket,
     list of dicts (keys: Creative_ID and GCS_URL)
   """
 
-  print('fetching creatives from GCS...')
-  gcs = init_gcs(credentials_path, gcp_project)
-  bucket = gcs.get_bucket(gcs_bucket)
-  blobs = bucket.list_blobs()
+    print('fetching creatives from GCS...')
+    gcs = init_gcs(credentials_path, gcp_project)
+    bucket = gcs.get_bucket(gcs_bucket)
+    blobs = bucket.list_blobs()
 
-  gcs_creatives = []
-  for blob in blobs:
-    if limit and len(gcs_creatives) >= limit:
-      break
+    gcs_creatives = []
+    for blob in blobs:
+        if limit and len(gcs_creatives) >= limit:
+            break
 
-    # skip folders
-    if blob.name[-1] == '/':
-      continue
+        # skip folders
+        if blob.name[-1] == '/':
+            continue
 
-    # check format
-    accepted_formats = {
-        'video': ['mp4', 'mov', 'wmv', 'm4v', 'webm'],
-        'image': ['jpg', 'png', 'gif', 'jpeg']
-    }
-    extension = blob.name.split('.')[-1].lower()
-    if extension not in accepted_formats[job_type]:
-      print('skipping unsuitable format: {}'.format(extension))
-      continue
+        # check format
+        accepted_formats = {
+            'video': ['mp4', 'mov', 'wmv', 'm4v', 'webm'],
+            'image': ['jpg', 'png', 'gif', 'jpeg']
+        }
+        extension = blob.name.split('.')[-1].lower()
+        if extension not in accepted_formats[job_type]:
+            print('skipping unsuitable format: {}'.format(extension))
+            continue
 
-    # extract creative ID
-    try:
-      # check if filename is {creative_id}_{other_stuff}.jpg
-      creative_id = int(blob.name.split('_')[0])
-    except (KeyError, ValueError):
-      # hash the filename
-      creative_id = hash(blob.name)
+        # extract creative ID
+        try:
+            # check if filename is {creative_id}_{other_stuff}.jpg
+            creative_id = int(blob.name.split('_')[0])
+        except (KeyError, ValueError):
+            # hash the filename
+            creative_id = hash(blob.name)
 
-    # save creative
-    gcs_creatives.append({
-        'Creative_ID': creative_id,
-        'GCS_URL': u'gs://{}/{}'.format(gcs_bucket, blob.name)
-    })
+        # save creative
+        gcs_creatives.append({
+            'Creative_ID': creative_id,
+            'GCS_URL': u'gs://{}/{}'.format(gcs_bucket, blob.name)
+        })
 
-  return gcs_creatives
+    return gcs_creatives
