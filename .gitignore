@@ -136,3 +136,6 @@ dmypy.json
 *.DS_Store
 .AppleDouble
 .LSOverride
+
+# gcp scret
+client_secrets.json
