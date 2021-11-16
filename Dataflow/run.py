@@ -26,7 +26,7 @@ from pipeline.local_helpers.jobfile_helper import validate_jobfile_format
 
 import yaml
 
-DATAFLOW_PYTHON_BINARY = 'python2'
+DATAFLOW_PYTHON_BINARY = 'python3'
 WORKERS = '10'
 
 REQUIREMENTS_PATH = 'pipeline/requirements.txt'
