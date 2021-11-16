@@ -16,14 +16,11 @@ google-auth==2.3.3
 google-auth-httplib2==0.1.0
 google-cloud-bigquery==2.30.1
 google-cloud-bigquery-storage==2.10.1
-google-cloud-bigtable==2.4.0
 google-cloud-core==2.2.1
-google-cloud-datastore==2.4.0
 google-cloud-dlp==3.3.1
 google-cloud-language==2.3.1
 google-cloud-pubsub==2.9.0
 google-cloud-recommendations-ai==0.5.1
-google-cloud-spanner==3.11.1
 google-cloud-storage==1.42.3
 google-cloud-videointelligence==2.5.1
 google-cloud-vision==2.6.2
