@@ -62,13 +62,13 @@ class ExtractImageMetadata(beam.DoFn):
         creative_id = row["Creative_ID"]
         gs_uri = row["GCS_URL"]
         image = {"source": {"image_uri": gs_uri}}
-        features = [{"type": vision.enums.Feature.Type.TEXT_DETECTION},
-                    {"type": vision.enums.Feature.Type.IMAGE_PROPERTIES},
-                    {"type": vision.enums.Feature.Type.SAFE_SEARCH_DETECTION},
-                    {"type": vision.enums.Feature.Type.LABEL_DETECTION},
-                    {"type": vision.enums.Feature.Type.LOGO_DETECTION},
-                    {"type": vision.enums.Feature.Type.FACE_DETECTION},
-                    {"type": vision.enums.Feature.Type.OBJECT_LOCALIZATION}]
+        features = [{"type": vision.Feature.Type.TEXT_DETECTION},
+                    {"type": vision.Feature.Type.IMAGE_PROPERTIES},
+                    {"type": vision.Feature.Type.SAFE_SEARCH_DETECTION},
+                    {"type": vision.Feature.Type.LABEL_DETECTION},
+                    {"type": vision.Feature.Type.LOGO_DETECTION},
+                    {"type": vision.Feature.Type.FACE_DETECTION},
+                    {"type": vision.Feature.Type.OBJECT_LOCALIZATION}]
         try:
             client = vision.ImageAnnotatorClient()
             response = self.wrapper_vision_api_call(client,
@@ -152,18 +152,18 @@ class ExtractVideoMetadata(beam.DoFn):
 
         try:
             video_client = videointelligence.VideoIntelligenceServiceClient()
-            features = [videointelligence.enums.Feature.LABEL_DETECTION,
-                        videointelligence.enums.Feature.TEXT_DETECTION,
-                        videointelligence.enums.Feature.SHOT_CHANGE_DETECTION,
-                        videointelligence.enums.Feature.EXPLICIT_CONTENT_DETECTION,
-                        videointelligence.enums.Feature.SPEECH_TRANSCRIPTION,
-                        videointelligence.enums.Feature.OBJECT_TRACKING
+            features = [videointelligence.Feature.LABEL_DETECTION,
+                        videointelligence.Feature.TEXT_DETECTION,
+                        videointelligence.Feature.SHOT_CHANGE_DETECTION,
+                        videointelligence.Feature.EXPLICIT_CONTENT_DETECTION,
+                        videointelligence.Feature.SPEECH_TRANSCRIPTION,
+                        videointelligence.Feature.OBJECT_TRACKING
                         ]
-            config = videointelligence.types.SpeechTranscriptionConfig(
-                language_code="en-US",
-                enable_automatic_punctuation=True)
-            video_context = videointelligence.types.VideoContext(
-                speech_transcription_config=config)
+            config = videointelligence.SpeechTranscriptionConfig({
+                "language_code": "en-US",
+                "enable_automatic_punctuation": True})
+            video_context = videointelligence.VideoContext({
+                "speech_transcription_config": config})
             result = self.wrapper_video_api_call(video_client, gs_uri, features,
                                                  video_context)
             if not result:
@@ -229,9 +229,9 @@ class ExtractVideoMetadata(beam.DoFn):
                           creative_id)
         except GoogleAPIError as err:
             logging.error("Catching generic API error: %s for creative_id: %d",
-                          str(err.message),
+                          str(err),
                           creative_id)
         except Exception as eerr:
             logging.error("Catching generic exception error: %s for creative_id: %d",
-                          str(eerr.message),
+                          str(eerr),
                           creative_id)
