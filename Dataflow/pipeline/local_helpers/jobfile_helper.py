@@ -30,13 +30,13 @@ import yaml
 def open_jobfile(filepath, delete=False):
     """Attempts to open a jobfile from the specified path, optionally deleting it.
 
-  Args:
-    filepath: path to jobfile.yaml
-    delete: whether to try to delete the file
+    Args:
+        filepath: path to jobfile.yaml
+        delete: whether to try to delete the file
 
-  Returns:
-    jobfile dictionary
-  """
+    Returns:
+        jobfile dictionary
+    """
 
     with open(filepath, 'r') as jobfile_raw:
         jobfile = yaml.safe_load(jobfile_raw)
@@ -51,16 +51,15 @@ def open_jobfile(filepath, delete=False):
 
 def validate_jobfile_format(jobfile):
     """Takes a jobfile dictionary and returns it if formatted properly.
+    Args:
+        jobfile: dictionary after file ingestion
 
-  Args:
-    jobfile: dictionary after file ingestion
+    Returns:
+        jobfile dictionary
 
-  Returns:
-    jobfile dictionary
-
-  Raises:
-    ValueError
-  """
+    Raises:
+        ValueError
+    """
 
     first_level_fields = [
         'job_name', 'job_type',
@@ -69,13 +68,12 @@ def validate_jobfile_format(jobfile):
     ]
     for attr in first_level_fields:
         if attr not in jobfile:
-            msg = '{} missing from jobfile, refer to sample.yaml'.format(attr)
+            msg = f"{attr} missing from jobfile, refer to sample.yaml"
             raise ValueError(msg)
 
     job_types = ['image', 'video']
     if jobfile['job_type'] not in job_types:
-        msg = 'job_type {} not recognized, must be one of {}'.format(
-            jobfile['job_type'], job_types)
+        msg = f"job_type {jobfile['job_type']} not recognized, must be one of {job_types}"
         raise ValueError(msg)
 
     creative_source_fields = {
@@ -84,13 +82,14 @@ def validate_jobfile_format(jobfile):
         'gcs': ['gcs_bucket', 'gcp_project']
     }
     if jobfile['creative_source_type'] not in creative_source_fields:
-        msg = 'creative_source_type {} not recognized, must be one of {}'.format(
-            jobfile['creative_source_type'], creative_source_fields.keys())
+        msg = f"""
+            creative_source_type {jobfile['creative_source_type']} not recognized,
+            must be one of {creative_source_fields}
+        """
         raise ValueError(msg)
     for attr in creative_source_fields[jobfile['creative_source_type']]:
         if attr not in jobfile['creative_source_details']:
-            msg = 'need {} to read from {}, refer to sample.yaml'.format(
-                attr, jobfile['creative_source_type'])
+            msg = f"need {attr} to read from {jobfile['creative_source_type']}, refer to sample.yaml"
             raise ValueError(msg)
 
     second_level_fields = {
@@ -100,7 +99,7 @@ def validate_jobfile_format(jobfile):
     for field in second_level_fields:
         for attr in second_level_fields[field]:
             if attr not in jobfile[field]:
-                msg = 'need {} in {}, refer to sample.yaml'.format(attr, field)
+                msg = f"need {attr} in {field}, refer to sample.yaml"
                 raise ValueError(msg)
 
     return jobfile
@@ -109,16 +108,16 @@ def validate_jobfile_format(jobfile):
 def validate_jobfile_access(jobfile, credentials_path):
     """Takes a jobfile dictionary and returns it if formatted properly.
 
-  Args:
-    jobfile: dictionary after file ingestion
-    credentials_path: filepath to client_secrets.json
+      Args:
+        jobfile: dictionary after file ingestion
+        credentials_path: filepath to client_secrets.json
 
-  Returns:
-    jobfile dictionary
+      Returns:
+        jobfile dictionary
 
-  Raises:
-    ValueError
-  """
+      Raises:
+        ValueError
+    """
 
     if jobfile['creative_source_type'] == 'bigquery':
         pass  # TODO(team)
@@ -138,16 +137,19 @@ def validate_jobfile_access(jobfile, credentials_path):
                 break
 
         if found_profile and int(found_profile['accountId']) != specified_account:
-            msg = 'CM user profile {} belongs to account {}, but account {} specified'
-            msg = msg.format(specified_profile, found_profile['accountId'],
-                             specified_account)
+            msg = f"""
+                CM user profile {specified_profile} belongs to account {found_profile['accountId']}, 
+                but account {specified_account} specified
+            """
             raise ValueError(msg)
         if not found_profile:
             if not profiles:
-                msg = 'the service account has no CM profiles'
+                msg = "the service account has no CM profiles"
             else:
-                msg = 'CM profile {} either doesn\'t exist, '.format(specified_profile)
-                msg += 'or doesn\'t belong to this service account'
+                msg = f"""
+                    CM profile {specified_profile} either doesn't exist,
+                    or doesn't belong to this service account
+                """
             raise ValueError(msg)
 
     # TODO(team): validate data_destination and run_details also
