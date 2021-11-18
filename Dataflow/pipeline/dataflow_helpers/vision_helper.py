@@ -15,7 +15,10 @@
 """Helpers for Vision/Video Intelligence API that run on Dataflow."""
 
 import logging
+
 import apache_beam as beam
+import json
+import copy
 from google.api_core.exceptions import ClientError
 from google.api_core.exceptions import GoogleAPIError
 from google.api_core.exceptions import ServerError
@@ -116,8 +119,7 @@ class ExtractVideoMetadata(beam.DoFn):
         retry_filter=lambda exception: isinstance(exception, ServerError))
     def wrapper_video_api_call(self, video_client, gs_uri, features,
                                video_context):
-        operation = video_client.annotate_video(gs_uri, features=features,
-                                                video_context=video_context)
+        operation = video_client.annotate_video(input_uri=gs_uri, features=features, video_context=video_context)
         # TODO(team): Video jobs currently have an issue where Dataflow autoscales
         # down to 1 worker. Our running theory is that it's caused by this
         # (presumably) long-running synchronous call: when many workers are waiting
@@ -152,20 +154,29 @@ class ExtractVideoMetadata(beam.DoFn):
 
         try:
             video_client = videointelligence.VideoIntelligenceServiceClient()
-            features = [videointelligence.Feature.LABEL_DETECTION,
-                        videointelligence.Feature.TEXT_DETECTION,
-                        videointelligence.Feature.SHOT_CHANGE_DETECTION,
-                        videointelligence.Feature.EXPLICIT_CONTENT_DETECTION,
-                        videointelligence.Feature.SPEECH_TRANSCRIPTION,
-                        videointelligence.Feature.OBJECT_TRACKING
+            features = [videointelligence.enums.Feature.LABEL_DETECTION,
+                        videointelligence.enums.Feature.TEXT_DETECTION,
+                        videointelligence.enums.Feature.SHOT_CHANGE_DETECTION,
+                        videointelligence.enums.Feature.EXPLICIT_CONTENT_DETECTION,
+                        videointelligence.enums.Feature.SPEECH_TRANSCRIPTION,
+                        videointelligence.enums.Feature.OBJECT_TRACKING
                         ]
-            config = videointelligence.SpeechTranscriptionConfig({
-                "language_code": "en-US",
-                "enable_automatic_punctuation": True})
-            video_context = videointelligence.VideoContext({
-                "speech_transcription_config": config})
+
+            config = videointelligence.types.SpeechTranscriptionConfig(
+                language_code="en-US",
+                enable_automatic_punctuation=True)
+            video_context = videointelligence.types.VideoContext(
+                speech_transcription_config=config)
+            # logging.info(f"!!!! Video Context : {video_context}")
+            # logging.info(f"!!!!!!!!! {gs_uri} !!!!!!!!! {features}!!!!!!!!!!!")
             result = self.wrapper_video_api_call(video_client, gs_uri, features,
                                                  video_context)
+            # logging.info(f"This here is the type :: {type(result.annotation_results[0].text_annotations)}")
+            # result_copy = copy.deepcopy(result)
+            # result_json = result_copy.__class__.to_json(result_copy)
+            # result_dict = json.loads(result_json)
+#            logging.info(f"this here is a test {result_dict}")
+            # logging.info(f"!!! result :: {result.annotation_results[0]}")
             if not result:
                 logging.info("Catching empty response for id: %s", creative_id)
                 return
@@ -179,10 +190,13 @@ class ExtractVideoMetadata(beam.DoFn):
             text_annotations = list(map(MessageToDict,
                                         doesnt_contain_speech.text_annotations))
             rel_text_annotations = map(fetch_relevant_text_fields, text_annotations)
+            # rel_text_annotations = map(fetch_relevant_text_fields,  result_dict['annotationResults'][0]['textAnnotations'])  # text_annotations)
 
+            # segment_label_annotations = result_dict['annotationResults'][0]['segmentLabelAnnotations']
             segment_label_annotations = list(map(MessageToDict,
                                                  doesnt_contain_speech
                                                  .segment_label_annotations))
+            #shot_label_annotations = result_dict['annotationResults'][0]['shotLabelAnnotations']
             shot_label_annotations = list(map(MessageToDict,
                                               doesnt_contain_speech
                                               .shot_label_annotations))
@@ -190,8 +204,8 @@ class ExtractVideoMetadata(beam.DoFn):
                                             segment_label_annotations)
 
             rel_shot_label_annotations = map(fetch_relevant_label_fields,
-                                             shot_label_annotations)
-
+                                            shot_label_annotations)
+            #shot_change_annotations = result_dict['annotationResults'][0]['shotAnnotations']
             shot_change_annotations = list(map(MessageToDict,
                                                doesnt_contain_speech
                                                .shot_annotations))
@@ -202,7 +216,9 @@ class ExtractVideoMetadata(beam.DoFn):
 
             if speech_transcription["alternatives"] == [{}]:
                 speech_transcription = []
-
+            # explicit_annotation = []
+            # speech_transcription = []
+            # object_annotations = result_dict['annotationResults'][0]['objectAnnotations']
             object_annotations = list(map(MessageToDict,
                                           result.annotation_results[0]
                                           .object_annotations))
@@ -218,20 +234,22 @@ class ExtractVideoMetadata(beam.DoFn):
                 "object_annotations": object_annotations
             }
 
+            # logging.info(f"Here is the row : {video_row}")
+
             yield video_row
         except ClientError as cerr:
             logging.error("Catching client error: %s for creative_id: %d",
                           str(cerr.message),
-                          creative_id)
+                          creative_id, exc_info=True)
         except ServerError as serr:
             logging.error("Catching server error: %s after 5 retries for id: %d",
                           str(serr.message),
-                          creative_id)
+                          creative_id, exc_info=True)
         except GoogleAPIError as err:
             logging.error("Catching generic API error: %s for creative_id: %d",
                           str(err),
-                          creative_id)
+                          creative_id, exc_info=True)
         except Exception as eerr:
             logging.error("Catching generic exception error: %s for creative_id: %d",
                           str(eerr),
-                          creative_id)
+                          creative_id, exc_info=True)

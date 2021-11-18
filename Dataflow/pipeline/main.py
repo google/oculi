@@ -141,6 +141,7 @@ if job_type == 'image':
                 filtered_output
                 | 'Write {0} to BQ'.format(endpoint)
                 >> beam.io.WriteToBigQuery(
+            project='cloud-in-a-box',
             table='{0}.{1}'.format(destination_bq_dataset, endpoint),
             schema=image_schema_definitions.get_table_schema(endpoint=endpoint),
             write_disposition=write_disposition,
@@ -153,6 +154,7 @@ else:
         vision_helper.ExtractVideoMetadata()))
 
     for endpoint in video_endpoints:
+        print(f"!!!!!!!!!!!!!!!!!!!! Endpoint {endpoint}")
         filtered_output = (
                 annotated_creatives
                 | 'Extract {0}'.format(endpoint) >> beam.ParDo(
@@ -162,10 +164,13 @@ else:
                 filtered_output
                 | 'Write {0} to BQ'.format(endpoint)
                 >> beam.io.WriteToBigQuery(
+            project='cloud-in-a-box',
             table='{0}.{1}'.format(destination_bq_dataset, endpoint),
             schema=video_schema_definitions.get_table_schema(endpoint),
             write_disposition=write_disposition,
             create_disposition=create_disposition))
-
-results = p.run()
-print('Pipeline started. If running on Dataflow, check the Dataflow console.')
+try:
+    results = p.run()
+    print('Pipeline started. If running on Dataflow, check the Dataflow console.')
+except Exception as ex:
+    logging.error(f"{str(ex)}",  exc_info=True)

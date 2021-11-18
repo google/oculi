@@ -13,11 +13,12 @@
 # limitations under the License.
 
 """Pipeline utilities intended to run on Dataflow."""
+from abc import ABC
 
 import apache_beam as beam
 
 
-class FilterAPIOutput(beam.DoFn):
+class FilterAPIOutput(beam.DoFn, ABC):
     """Filtering API output."""
 
     def process(self, row, endpoint):

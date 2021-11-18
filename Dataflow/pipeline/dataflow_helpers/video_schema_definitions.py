@@ -203,11 +203,11 @@ schema_speech = {
 def get_table_schema(endpoint):
     """Get the relevant table schema for the specified endpoint.
 
-  Args:
-    endpoint: Vision API endpoint.
-  Returns:
-    Relevant table schema for the endpoint.
-  """
+    Args:
+      endpoint: Vision API endpoint.
+    Returns:
+      Relevant table schema for the endpoint.
+    """
     table_schema_map = {
         "text_annotations": schema_text_annotations,
         "segment_label_annotations": schema_seg_label,
