@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Controller code for the Dataflow pipeline, including local setup."""
+'''Controller code for the Dataflow pipeline, including local setup.'''
 
 from __future__ import print_function
 
@@ -35,6 +35,7 @@ from local_helpers import jobfile_helper
 TMP_PATH = 'tmp.yaml'
 CREDENTIALS_PATH = 'client_secrets.json'
 
+
 root = logging.getLogger()
 root.setLevel(logging.INFO)
 
@@ -44,8 +45,9 @@ jobfile = jobfile_helper.open_jobfile(TMP_PATH, delete=True)
 print(jobfile)
 
 # set options for Dataflow session
-options = PipelineOptions(region='us-central1')
+options = PipelineOptions()
 google_cloud_options = options.view_as(GoogleCloudOptions)
+google_cloud_options.region = jobfile['run_details']['dataflow_region']
 google_cloud_options.job_name = jobfile['job_name']
 google_cloud_options.project = jobfile['run_details']['gcp_project']
 google_cloud_options.temp_location = jobfile['run_details']['temp_location']
@@ -141,7 +143,6 @@ if job_type == 'image':
                 filtered_output
                 | 'Write {0} to BQ'.format(endpoint)
                 >> beam.io.WriteToBigQuery(
-            project='cloud-in-a-box',
             table='{0}.{1}'.format(destination_bq_dataset, endpoint),
             schema=image_schema_definitions.get_table_schema(endpoint=endpoint),
             write_disposition=write_disposition,
@@ -153,8 +154,8 @@ else:
             | 'Annotate video creatives' >> beam.ParDo(
         vision_helper.ExtractVideoMetadata()))
 
+    print(f"!!!!!!!! {annotated_creatives}")
     for endpoint in video_endpoints:
-        print(f"!!!!!!!!!!!!!!!!!!!! Endpoint {endpoint}")
         filtered_output = (
                 annotated_creatives
                 | 'Extract {0}'.format(endpoint) >> beam.ParDo(
@@ -164,13 +165,11 @@ else:
                 filtered_output
                 | 'Write {0} to BQ'.format(endpoint)
                 >> beam.io.WriteToBigQuery(
-            project='cloud-in-a-box',
             table='{0}.{1}'.format(destination_bq_dataset, endpoint),
             schema=video_schema_definitions.get_table_schema(endpoint),
             write_disposition=write_disposition,
             create_disposition=create_disposition))
-try:
-    results = p.run()
-    print('Pipeline started. If running on Dataflow, check the Dataflow console.')
-except Exception as ex:
-    logging.error(f"{str(ex)}",  exc_info=True)
+
+
+results = p.run()
+print('Pipeline started. If running on Dataflow, check the Dataflow console.')
