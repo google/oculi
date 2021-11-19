@@ -154,7 +154,6 @@ else:
             | 'Annotate video creatives' >> beam.ParDo(
         vision_helper.ExtractVideoMetadata()))
 
-    print(f"!!!!!!!! {annotated_creatives}")
     for endpoint in video_endpoints:
         filtered_output = (
                 annotated_creatives

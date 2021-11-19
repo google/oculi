@@ -20,7 +20,6 @@ class FilterAPIOutput(beam.DoFn):
     """Filtering API output."""
 
     def process(self, row, endpoint):
-        print(f"!!!!!!!!! {row} !!!!!!! {endpoint}")
         if row[endpoint]:
             field_selector = ["creative_id", "creative_url", endpoint]
             filtered_output = {key: row[key] for key in field_selector}

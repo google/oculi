@@ -137,8 +137,8 @@ class ExtractVideoMetadata(beam.DoFn):
 
         def fetch_relevant_text_fields(row):
             segments_list = row["segments"]
-            confidence_list = map(fetch_relevant_segment_fields,
-                                  segments_list)
+            confidence_list = list(map(fetch_relevant_segment_fields,
+                                       segments_list))
             new_row = {"text": row["text"],
                        "segments": confidence_list}
             return new_row
@@ -170,9 +170,6 @@ class ExtractVideoMetadata(beam.DoFn):
 
             result = self.wrapper_video_api_call(video_client, gs_uri, features,
                                                  video_context)
-            # result_json = result.__class__.to_json(result)
-            # result_dict = json.loads(result_json)
-
             if not result:
                 logging.info("Catching empty response for id: %s", creative_id)
                 return
@@ -183,18 +180,15 @@ class ExtractVideoMetadata(beam.DoFn):
                 contains_speech = result.annotation_results[1]
                 doesnt_contain_speech = result.annotation_results[0]
 
-            # text_annotations = list(map(MessageToDict,
-            #                             doesnt_contain_speech.text_annotations))
-            text_annotations = [MessageToDict(n) for n in doesnt_contain_speech.text_annotations]
-            # rel_text_annotations = map(fetch_relevant_text_fields, text_annotations)
-            rel_text_annotations = [fetch_relevant_text_fields(n) for n in text_annotations]
-            # rel_text_annotations = map(fetch_relevant_text_fields,  result_dict['annotationResults'][0]['textAnnotations'])  # text_annotations)
+            text_annotations = list(map(MessageToDict,
+                                        doesnt_contain_speech.text_annotations))
 
-            # segment_label_annotations = result_dict['annotationResults'][0]['segmentLabelAnnotations']
+            rel_text_annotations = list(map(fetch_relevant_text_fields, text_annotations))
+
             segment_label_annotations = list(map(MessageToDict,
                                                  doesnt_contain_speech
                                                  .segment_label_annotations))
-            # shot_label_annotations = result_dict['annotationResults'][0]['shotLabelAnnotations']
+
             shot_label_annotations = list(map(MessageToDict,
                                               doesnt_contain_speech
                                               .shot_label_annotations))
@@ -203,7 +197,7 @@ class ExtractVideoMetadata(beam.DoFn):
 
             rel_shot_label_annotations = list(map(fetch_relevant_label_fields,
                                                   shot_label_annotations))
-            # shot_change_annotations = result_dict['annotationResults'][0]['shotAnnotations']
+
             shot_change_annotations = list(map(MessageToDict,
                                                doesnt_contain_speech
                                                .shot_annotations))
@@ -215,11 +209,10 @@ class ExtractVideoMetadata(beam.DoFn):
             if speech_transcription["alternatives"] == [{}]:
                 speech_transcription = []
 
-            # object_annotations = result_dict['annotationResults'][0]['objectAnnotations']
             object_annotations = list(map(MessageToDict,
                                           result.annotation_results[0]
                                           .object_annotations))
-            logging.info(f"This is it :: {rel_text_annotations}")
+            logging.info(f"This here is it :: {rel_text_annotations}")
             video_row = {
                 "creative_id": creative_id,
                 "creative_url": gcs_prefix + gs_uri[4:],
