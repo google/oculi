@@ -14,7 +14,6 @@
 
 job_name: "sample-job" # human-readable name for Dataflow console and GCS folder
 job_type: "image" # options: "image", "video"
-job_region: "eu-west1"
 
 
 creative_source_type: "bigquery" # options: "bigquery:, "cm", "gcs"
