@@ -38,6 +38,7 @@ data_destination:
   gcs_bucket: "gcs-bucket-name" # for storage of creative assets (image and video files)
 
 run_details: # required for Dataflow setup
+  job_region: "us-central1"
   gcp_project: "gcp-project-name"
   temp_location: "gs://gcs-bucket-name/tmp"
   staging_location: "gs://gcs-bucket-name/staging"

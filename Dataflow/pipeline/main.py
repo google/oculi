@@ -47,7 +47,7 @@ print(jobfile)
 # set options for Dataflow session
 options = PipelineOptions()
 google_cloud_options = options.view_as(GoogleCloudOptions)
-google_cloud_options.region = jobfile['run_details']['dataflow_region']
+google_cloud_options.region = jobfile['run_details']['job_region']
 google_cloud_options.job_name = jobfile['job_name']
 google_cloud_options.project = jobfile['run_details']['gcp_project']
 google_cloud_options.temp_location = jobfile['run_details']['temp_location']
