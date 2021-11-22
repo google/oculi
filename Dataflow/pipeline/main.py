@@ -14,8 +14,6 @@
 
 '''Controller code for the Dataflow pipeline, including local setup.'''
 
-from __future__ import print_function
-
 import logging
 
 import apache_beam as beam
@@ -47,7 +45,7 @@ print(jobfile)
 # set options for Dataflow session
 options = PipelineOptions()
 google_cloud_options = options.view_as(GoogleCloudOptions)
-google_cloud_options.region = jobfile['job_region']
+google_cloud_options.region = jobfile['run_details']['job_region']
 google_cloud_options.job_name = jobfile['job_name']
 google_cloud_options.project = jobfile['run_details']['gcp_project']
 google_cloud_options.temp_location = jobfile['run_details']['temp_location']
@@ -72,55 +70,55 @@ p = beam.Pipeline(options=options)
 creative_limit = jobfile['creative_source_details']['limit']
 
 if jobfile['creative_source_type'] == 'bigquery':
-  source_bq_table = '{0}.{1}.{2}'.format(
-      jobfile['creative_source_details']['gcp_project'],
-      jobfile['creative_source_details']['bq_dataset'],
-      jobfile['creative_source_details']['bq_table'])
-  read_query = 'SELECT * FROM `{0}` {1}'.format(
-      source_bq_table,
-      'LIMIT {}'.format(creative_limit) if creative_limit else '')
+    source_bq_table = '{0}.{1}.{2}'.format(
+        jobfile['creative_source_details']['gcp_project'],
+        jobfile['creative_source_details']['bq_dataset'],
+        jobfile['creative_source_details']['bq_table'])
+    read_query = 'SELECT * FROM `{0}` {1}'.format(
+        source_bq_table,
+        'LIMIT {}'.format(creative_limit) if creative_limit else '')
 
-  rows = (
-      p
-      | 'Read creatives from BQ table' >> beam.io.Read(
-          beam.io.BigQuerySource(
-              query=read_query,
-              use_standard_sql=True)))
+    rows = (
+            p
+            | 'Read creatives from BQ table' >> beam.io.Read(
+        beam.io.BigQuerySource(
+            query=read_query,
+            use_standard_sql=True)))
 
 elif jobfile['creative_source_type'] == 'cm':
-  cm_creatives = cm_helper.fetch_cm_creatives(
-      CREDENTIALS_PATH,
-      jobfile['creative_source_details']['cm_profile_id'],
-      jobfile['job_type'],
-      jobfile['creative_source_details']['start_date'],
-      jobfile['creative_source_details']['end_date'],
-      limit=creative_limit)
+    cm_creatives = cm_helper.fetch_cm_creatives(
+        CREDENTIALS_PATH,
+        jobfile['creative_source_details']['cm_profile_id'],
+        jobfile['job_type'],
+        jobfile['creative_source_details']['start_date'],
+        jobfile['creative_source_details']['end_date'],
+        limit=creative_limit)
 
-  rows = (
-      p
-      | 'Pull creatives from CM' >> beam.Create(cm_creatives))
+    rows = (
+            p
+            | 'Pull creatives from CM' >> beam.Create(cm_creatives))
 
 if jobfile['creative_source_type'] in ['bigquery', 'cm']:
-  upload = (
-      rows
-      | 'Copy assets to GCS' >> beam.ParDo(
-          gcs_copy_helper.UploadToGcs(),
-          gcp_project=jobfile['data_destination']['gcp_project'],
-          gcs_bucket_name=jobfile['data_destination']['gcs_bucket'],
-          job_name=jobfile['job_name'],
-          job_type=jobfile['job_type']))
+    upload = (
+            rows
+            | 'Copy assets to GCS' >> beam.ParDo(
+        gcs_copy_helper.UploadToGcs(),
+        gcp_project=jobfile['data_destination']['gcp_project'],
+        gcs_bucket_name=jobfile['data_destination']['gcs_bucket'],
+        job_name=jobfile['job_name'],
+        job_type=jobfile['job_type']))
 
 elif jobfile['creative_source_type'] == 'gcs':
-  gcs_creatives = gcs_read_helper.fetch_gcs_creatives(
-      CREDENTIALS_PATH,
-      jobfile['creative_source_details']['gcp_project'],
-      jobfile['creative_source_details']['gcs_bucket'],
-      jobfile['job_type'],
-      limit=creative_limit)
+    gcs_creatives = gcs_read_helper.fetch_gcs_creatives(
+        CREDENTIALS_PATH,
+        jobfile['creative_source_details']['gcp_project'],
+        jobfile['creative_source_details']['gcs_bucket'],
+        jobfile['job_type'],
+        limit=creative_limit)
 
-  upload = (
-      p
-      | 'Read creatives from GCS' >> beam.Create(gcs_creatives))
+    upload = (
+            p
+            | 'Read creatives from GCS' >> beam.Create(gcs_creatives))
 
 job_type = jobfile['job_type']
 destination_bq_dataset = '{0}:{1}'.format(
@@ -128,42 +126,42 @@ destination_bq_dataset = '{0}:{1}'.format(
     jobfile['data_destination']['bq_dataset'])
 
 if job_type == 'image':
-  annotated_creatives = (
-      upload
-      | 'Annotate image creatives' >> beam.ParDo(
-          vision_helper.ExtractImageMetadata()))
+    annotated_creatives = (
+            upload
+            | 'Annotate image creatives' >> beam.ParDo(
+        vision_helper.ExtractImageMetadata()))
 
-  for endpoint in image_endpoints:
-    filtered_output = (
-        annotated_creatives
-        | 'Extract {0}'.format(endpoint) >> beam.ParDo(
+    for endpoint in image_endpoints:
+        filtered_output = (
+                annotated_creatives
+                | 'Extract {0}'.format(endpoint) >> beam.ParDo(
             util.FilterAPIOutput(), endpoint=endpoint))
 
-    write_to_bq = (
-        filtered_output
-        | 'Write {0} to BQ'.format(endpoint)
-        >> beam.io.WriteToBigQuery(
+        write_to_bq = (
+                filtered_output
+                | 'Write {0} to BQ'.format(endpoint)
+                >> beam.io.WriteToBigQuery(
             table='{0}.{1}'.format(destination_bq_dataset, endpoint),
             schema=image_schema_definitions.get_table_schema(endpoint=endpoint),
             write_disposition=write_disposition,
             create_disposition=create_disposition))
 
 else:
-  annotated_creatives = (
-      upload
-      | 'Annotate video creatives' >> beam.ParDo(
-          vision_helper.ExtractVideoMetadata()))
+    annotated_creatives = (
+            upload
+            | 'Annotate video creatives' >> beam.ParDo(
+        vision_helper.ExtractVideoMetadata()))
 
-  for endpoint in video_endpoints:
-    filtered_output = (
-        annotated_creatives
-        | 'Extract {0}'.format(endpoint) >> beam.ParDo(
+    for endpoint in video_endpoints:
+        filtered_output = (
+                annotated_creatives
+                | 'Extract {0}'.format(endpoint) >> beam.ParDo(
             util.FilterAPIOutput(), endpoint=endpoint))
 
-    write_to_bq = (
-        filtered_output
-        | 'Write {0} to BQ'.format(endpoint)
-        >> beam.io.WriteToBigQuery(
+        write_to_bq = (
+                filtered_output
+                | 'Write {0} to BQ'.format(endpoint)
+                >> beam.io.WriteToBigQuery(
             table='{0}.{1}'.format(destination_bq_dataset, endpoint),
             schema=video_schema_definitions.get_table_schema(endpoint),
             write_disposition=write_disposition,

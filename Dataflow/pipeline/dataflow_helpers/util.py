@@ -13,15 +13,14 @@
 # limitations under the License.
 
 """Pipeline utilities intended to run on Dataflow."""
-
 import apache_beam as beam
 
 
 class FilterAPIOutput(beam.DoFn):
-  """Filtering API output."""
+    """Filtering API output."""
 
-  def process(self, row, endpoint):
-    if row[endpoint]:
-      field_selector = ["creative_id", "creative_url", endpoint]
-      filtered_output = {key: row[key] for key in field_selector}
-      yield filtered_output
+    def process(self, row, endpoint):
+        if row[endpoint]:
+            field_selector = ["creative_id", "creative_url", endpoint]
+            filtered_output = {key: row[key] for key in field_selector}
+            yield filtered_output

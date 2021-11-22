@@ -55,13 +55,21 @@ This pipeline uses:
 
 Basic requirements for setup include:
 
-*   Python 2.7
-*   Google Cloud SDK
+* Python 3.7
+* Google Cloud SDK
+* cargo - [Link](https://www.rust-lang.org/tools/install)
 
 Full requirements can be found in `requirements.txt` and will be installed for
 you through setup scripts.
 
 ## Running the pipeline
+
+**Note:** When running the job. You will need to install cargo (rust), it is
+needed for the dependencies used in the project. [Link](https://www.rust-lang.org/tools/install)  
+At the time writing this here command should help you set it up.
+```shell
+> curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
 1.  *(Optional)* If you would like a virtual environment set up for you:
 
@@ -167,3 +175,7 @@ versions specified in `requirements.txt`.
 *   Aritra Biswas (aritrab@google.com)
 *   David Letts (dgletts@google.com)
 *   Eddie Ye (edwardye@google.com)
+
+### WT forked 
+* Kasper Aaquist Johansen (kasper.johansen@wundermanthompson.com)
+* Oscar Labrador (oscar.labrador@wundermanthompson.com)
