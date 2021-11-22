@@ -14,7 +14,6 @@
 
 job_name: "sample-job" # human-readable name for Dataflow console and GCS folder
 job_type: "image" # options: "image", "video"
-job_region: "eu-west1"
 
 
 creative_source_type: "bigquery" # options: "bigquery:, "cm", "gcs"
@@ -40,6 +39,7 @@ data_destination:
   gcs_bucket: "gcs-bucket-name" # for storage of creative assets (image and video files)
 
 run_details: # required for Dataflow setup
+  job_region: "us-central1"
   gcp_project: "gcp-project-name"
   temp_location: "gs://gcs-bucket-name/tmp"
   staging_location: "gs://gcs-bucket-name/staging"

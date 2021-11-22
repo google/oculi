@@ -172,7 +172,7 @@ schema_label_annotations = {"fields":
                                              {"name": "description",
                                               "type": "STRING",
                                               "mode": "NULLABLE"}]}]
-                           }
+                            }
 
 field_vertices = [{"name": "y", "type": "INTEGER", "mode": "NULLABLE"},
                   {"name": "x", "type": "INTEGER", "mode": "NULLABLE"}]
@@ -197,9 +197,9 @@ schema_logo_annotations = {"fields":
                                                          "mode": "REPEATED",
                                                          "fields":
                                                              field_vertices}]
-                                            }]
-                                }]
-                          }
+                                             }]
+                                 }]
+                           }
 
 schema_face = {"fields":
                    field_common +
@@ -269,10 +269,10 @@ schema_face = {"fields":
                                                         {"name": "z",
                                                          "type": "FLOAT",
                                                          "mode": "NULLABLE"}]
-                                            }]
+                                             }]
                                  }]
-                    }]
-              }
+                     }]
+               }
 
 schema_object = {"fields":
                      field_common +
@@ -298,19 +298,20 @@ schema_object = {"fields":
                                                     {"name": "x",
                                                      "type": "FLOAT",
                                                      "mode": "NULLABLE"}]
-                                        }]
-                                  }]
-                      }]
-                }
+                                         }]
+                                   }]
+                       }]
+                 }
+
 
 def get_table_schema(endpoint):
-  table_schema_map = {
-      "image_properties_annotation": schema_image_prop,
-      "text_annotations": schema_text_annotations,
-      "safe_search_annotation": schema_safe_search_annotations,
-      "label_annotations": schema_label_annotations,
-      "logo_annotations": schema_logo_annotations,
-      "face_annotations": schema_face,
-      "object_annotations": schema_object
-  }
-  return table_schema_map[endpoint]
+    table_schema_map = {
+        "image_properties_annotation": schema_image_prop,
+        "text_annotations": schema_text_annotations,
+        "safe_search_annotation": schema_safe_search_annotations,
+        "label_annotations": schema_label_annotations,
+        "logo_annotations": schema_logo_annotations,
+        "face_annotations": schema_face,
+        "object_annotations": schema_object
+    }
+    return table_schema_map[endpoint]

@@ -29,7 +29,7 @@ field_bounding_box = [{"name": "vertices", "type": "RECORD", "mode": "REPEATED",
                                    "mode": "NULLABLE"},
                                   {"name": "y", "type": "FLOAT",
                                    "mode": "NULLABLE"}]
-                      }]
+                       }]
 
 field_segments = [{"name": "confidence", "type": "FLOAT", "mode": "NULLABLE"},
                   {"name": "segment", "type": "RECORD", "mode": "NULLABLE",
@@ -37,15 +37,15 @@ field_segments = [{"name": "confidence", "type": "FLOAT", "mode": "NULLABLE"},
                                "type": "STRING", "mode": "NULLABLE"},
                               {"name": "endTimeOffset",
                                "type": "STRING", "mode": "NULLABLE"}]
-                  },
+                   },
                   {"name": "frames", "type": "RECORD", "mode": "REPEATED",
                    "fields": [{"name": "timeOffset",
                                "type": "STRING", "mode": "NULLABLE"},
                               {"name": "rotatedBoundingBox",
                                "type": "RECORD", "mode": "NULLABLE",
                                "fields": field_bounding_box
-                              }]
-                  }]
+                               }]
+                   }]
 
 field_labels = [{"name": "entity", "type": "RECORD", "mode": "NULLABLE",
                  "fields": [{"name": "languageCode", "type": "STRING",
@@ -54,7 +54,7 @@ field_labels = [{"name": "entity", "type": "RECORD", "mode": "NULLABLE",
                              "mode": "NULLABLE"},
                             {"name": "description",
                              "type": "STRING", "mode": "NULLABLE"}]
-                },
+                 },
                 {"name": "segments", "type": "RECORD", "mode": "REPEATED",
                  "fields": [{"name": "confidence", "type": "FLOAT",
                              "mode": "NULLABLE"},
@@ -66,16 +66,16 @@ field_labels = [{"name": "entity", "type": "RECORD", "mode": "NULLABLE",
                                         {"name": "endTimeOffset",
                                          "type": "STRING",
                                          "mode": "NULLABLE"}
-                                       ]
-                            }
-                           ]
-                }]
+                                        ]
+                             }
+                            ]
+                 }]
 schema_seg_label = {
     "fields": field_common +
               [{"name": "segment_label_annotations", "type": "RECORD",
                 "mode": "REPEATED",
                 "fields": field_labels
-               }]
+                }]
 }
 
 schema_shot_label = {
@@ -83,7 +83,7 @@ schema_shot_label = {
               [{"name": "shot_label_annotations", "type": "RECORD",
                 "mode": "REPEATED",
                 "fields": field_labels
-               }]
+                }]
 }
 schema_text_annotations = {
     "fields": field_common +
@@ -94,7 +94,7 @@ schema_text_annotations = {
                            {"name": "segments", "type": "RECORD",
                             "mode": "REPEATED",
                             "fields": field_segments}]
-               }]
+                }]
 }
 schema_shot_change = {
     "fields": field_common +
@@ -104,8 +104,8 @@ schema_shot_change = {
                             "mode": "NULLABLE"},
                            {"name": "endTimeOffset", "type": "STRING",
                             "mode": "NULLABLE"}
-                          ]
-               }]
+                           ]
+                }]
 }
 
 schema_explicit = {
@@ -119,8 +119,8 @@ schema_explicit = {
                                         "mode": "NULLABLE"},
                                        {"name": "pornographyLikelihood",
                                         "type": "STRING", "mode": "NULLABLE"}]
-                           }]
-               }]
+                            }]
+                }]
 }
 
 schema_objects = {
@@ -166,9 +166,9 @@ schema_objects = {
                                                    {"name": "left",
                                                     "type": "FLOAT",
                                                     "mode": "NULLABLE"}]
-                                       }]
-                           }]
-               }]
+                                        }]
+                            }]
+                }]
 }
 
 schema_speech = {
@@ -194,27 +194,27 @@ schema_speech = {
                                                    {"name": "startTime",
                                                     "type": "STRING",
                                                     "mode": "NULLABLE"}]
-                                       }]
-                           }]
-               }]
+                                        }]
+                            }]
+                }]
 }
 
 
 def get_table_schema(endpoint):
-  """Get the relevant table schema for the specified endpoint.
+    """Get the relevant table schema for the specified endpoint.
 
-  Args:
-    endpoint: Vision API endpoint.
-  Returns:
-    Relevant table schema for the endpoint.
-  """
-  table_schema_map = {
-      "text_annotations": schema_text_annotations,
-      "segment_label_annotations": schema_seg_label,
-      "shot_label_annotations": schema_shot_label,
-      "shot_change_annotations": schema_shot_change,
-      "explicit_annotation": schema_explicit,
-      "object_annotations": schema_objects,
-      "speech_transcription": schema_speech
-  }
-  return table_schema_map[endpoint]
+    Args:
+      endpoint: Vision API endpoint.
+    Returns:
+      Relevant table schema for the endpoint.
+    """
+    table_schema_map = {
+        "text_annotations": schema_text_annotations,
+        "segment_label_annotations": schema_seg_label,
+        "shot_label_annotations": schema_shot_label,
+        "shot_change_annotations": schema_shot_change,
+        "explicit_annotation": schema_explicit,
+        "object_annotations": schema_objects,
+        "speech_transcription": schema_speech
+    }
+    return table_schema_map[endpoint]
