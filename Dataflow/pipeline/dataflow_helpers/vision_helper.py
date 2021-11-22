@@ -145,6 +145,8 @@ class ExtractVideoMetadata(beam.DoFn):
         def fetch_relevant_label_fields(segment_label_row):
             new_segment_label_row = {"entity": segment_label_row["entity"],
                                      "segments": segment_label_row["segments"]}
+            if "categoryEntities" in segment_label_row:
+                new_segment_label_row["categoryEntities"] = segment_label_row["categoryEntities"]
             return new_segment_label_row
 
         gcs_prefix = "https://storage.cloud.google.com"

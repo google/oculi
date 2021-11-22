@@ -66,10 +66,19 @@ field_labels = [{"name": "entity", "type": "RECORD", "mode": "NULLABLE",
                                         {"name": "endTimeOffset",
                                          "type": "STRING",
                                          "mode": "NULLABLE"}
-                                        ]
-                             }
-                            ]
+                                       ]
+                            }
+                           ]
+                },
+                {"name": "categoryEntities", "type": "RECORD", "mode": "REPEATED",
+                 "fields": [{"name": "languageCode", "type": "STRING",
+                             "mode": "NULLABLE"},
+                            {"name": "entityId", "type": "STRING",
+                             "mode": "NULLABLE"},
+                            {"name": "description",
+                             "type": "STRING", "mode": "NULLABLE"}]
                  }]
+
 schema_seg_label = {
     "fields": field_common +
               [{"name": "segment_label_annotations", "type": "RECORD",
@@ -85,6 +94,7 @@ schema_shot_label = {
                 "fields": field_labels
                 }]
 }
+
 schema_text_annotations = {
     "fields": field_common +
               [{"name": "text_annotations", "type": "RECORD",
@@ -96,6 +106,7 @@ schema_text_annotations = {
                             "fields": field_segments}]
                 }]
 }
+
 schema_shot_change = {
     "fields": field_common +
               [{"name": "shot_change_annotations", "type": "RECORD",
