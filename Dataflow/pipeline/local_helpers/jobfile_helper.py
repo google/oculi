@@ -14,8 +14,6 @@
 
 """Helpers for ingesting a jobfile that run on the local machine."""
 
-from __future__ import print_function
-
 import os
 import sys
 

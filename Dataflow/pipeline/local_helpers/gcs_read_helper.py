@@ -14,8 +14,6 @@
 
 """Helpers for GCS API and creative extraction that run on the local machine."""
 
-from __future__ import print_function
-
 from google.cloud import storage
 from google.oauth2 import service_account
 

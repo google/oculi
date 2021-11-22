@@ -14,8 +14,6 @@
 
 '''Controller code for the Dataflow pipeline, including local setup.'''
 
-from __future__ import print_function
-
 import logging
 
 import apache_beam as beam

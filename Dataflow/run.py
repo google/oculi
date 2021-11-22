@@ -14,8 +14,6 @@
 
 """Starts Oculi jobs from a jobfile, triggering main.py for Dataflow."""
 
-from __future__ import print_function
-
 import argparse
 import os
 import sys

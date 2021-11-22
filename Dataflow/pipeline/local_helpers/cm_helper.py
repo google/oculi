@@ -14,8 +14,6 @@
 
 """Helpers for CM API and creative extraction that run on the local machine."""
 
-from __future__ import print_function
-
 import random
 import time
 
