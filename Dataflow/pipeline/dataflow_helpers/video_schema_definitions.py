@@ -69,7 +69,16 @@ field_labels = [{"name": "entity", "type": "RECORD", "mode": "NULLABLE",
                                        ]
                             }
                            ]
-                }]
+                },
+                {"name": "categoryEntities", "type": "RECORD", "mode": "REPEATED",
+                 "fields": [{"name": "languageCode", "type": "STRING",
+                             "mode": "NULLABLE"},
+                            {"name": "entityId", "type": "STRING",
+                             "mode": "NULLABLE"},
+                            {"name": "description",
+                             "type": "STRING", "mode": "NULLABLE"}]
+                 }
+                ]
 schema_seg_label = {
     "fields": field_common +
               [{"name": "segment_label_annotations", "type": "RECORD",
