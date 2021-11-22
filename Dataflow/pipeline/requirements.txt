@@ -3,3 +3,4 @@ google-cloud-videointelligence==1.9.0
 google-api-python-client
 google-cloud-storage
 google-api-client
+pyparsing==2.4.2
