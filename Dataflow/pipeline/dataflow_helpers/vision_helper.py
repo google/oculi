@@ -18,7 +18,6 @@ import logging
 
 import apache_beam as beam
 import json
-import copy
 from google.api_core.exceptions import ClientError
 from google.api_core.exceptions import GoogleAPIError
 from google.api_core.exceptions import ServerError
