@@ -160,20 +160,15 @@ class ExtractVideoMetadata(beam.DoFn):
                         videointelligence.enums.Feature.SHOT_CHANGE_DETECTION,
                         videointelligence.enums.Feature.EXPLICIT_CONTENT_DETECTION,
                         videointelligence.enums.Feature.SPEECH_TRANSCRIPTION,
-                        videointelligence.enums.Feature.OBJECT_TRACKING,
-                        videointelligence.enums.Feature.FACE_DETECTION
+                        videointelligence.enums.Feature.OBJECT_TRACKING
                         ]
 
             speech_config = videointelligence.types.SpeechTranscriptionConfig(
                 language_code="en-US",
                 enable_automatic_punctuation=True)
-            # face_config = videointelligence.types.FaceDetectionConfig(
-            #     include_bounding_boxes=True, include_attributes=True
-            # )
 
             video_context = videointelligence.types.VideoContext(
                 speech_transcription_config=speech_config,
-                # face_detection_config=face_config
             )
 
             result = self.wrapper_video_api_call(video_client, gs_uri, features,
