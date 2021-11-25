@@ -29,6 +29,7 @@ from dataflow_helpers import vision_helper
 from local_helpers import cm_helper
 from local_helpers import gcs_read_helper
 from local_helpers import jobfile_helper
+from datetime import datetime
 
 TMP_PATH = 'tmp.yaml'
 CREDENTIALS_PATH = 'client_secrets.json'
@@ -42,11 +43,13 @@ root.setLevel(logging.INFO)
 jobfile = jobfile_helper.open_jobfile(TMP_PATH, delete=True)
 print(jobfile)
 
+job_name = f"job-{jobfile['run_details']['client']}-{jobfile['run_details']['brand']}-{jobfile['run_details']['business_unit']}-{datetime.today().strftime('%Y-%m-%d-%H-%M-%S')}"
 # set options for Dataflow session
 options = PipelineOptions()
 google_cloud_options = options.view_as(GoogleCloudOptions)
 google_cloud_options.region = jobfile['run_details']['job_region']
-google_cloud_options.job_name = jobfile['job_name']
+# use default job_name if custom name is not set. E.g. client, brand or business unit is "undefined".
+google_cloud_options.job_name = jobfile['job_name'] if "undefined" in job_name else job_name
 google_cloud_options.project = jobfile['run_details']['gcp_project']
 google_cloud_options.temp_location = jobfile['run_details']['temp_location']
 google_cloud_options.staging_location = (

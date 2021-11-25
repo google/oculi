@@ -45,6 +45,16 @@ if __name__ == '__main__':
     parser.add_argument('--local', action='store_true',
                         dest='local', default=False,
                         help='run on local machine (for testing)')
+    parser.add_argument('--client', action='store',
+                        dest='client', type=str, default="undefined",
+                        help='client name. E.g. Coca Cola')
+    parser.add_argument('--brand', action='store',
+                        dest='brand', type=str, default="undefined",
+                        help='brand name. E.g. for Coca Cola it could be Fanta. If no brand set client name')
+    parser.add_argument('--business_unit', action='store',
+                        dest='business_unit', type=str, default="undefined",
+                        help='Business unit. E.g. dk-offices. If no business unit set to client name')
+
     args = parser.parse_args()
 
     jobfile = open_jobfile(args.jobfile)
@@ -54,6 +64,9 @@ if __name__ == '__main__':
 
     # insert runtime details into modified jobfile for main.py
     # main.py will read the jobfile from this tmp_file, then delete it
+    jobfile['run_details']['business_unit'] = args.business_unit
+    jobfile['run_details']['brand'] = args.brand
+    jobfile['run_details']['client'] = args.client
     jobfile['creative_source_details']['limit'] = args.limit
     with open(TMP_PATH, 'w') as tmp_file:
         yaml.safe_dump(jobfile, tmp_file, default_flow_style=False)
